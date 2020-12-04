@@ -13,5 +13,5 @@ def three_makes_2020(ints):
         if i+j+k == 2020:
             return i*j*k
 
-print("Part 1: " + str(two_makes_2020(ints)))
-print("Part 2: " + str(three_makes_2020(ints)))
+print("Part 1: ", two_makes_2020(ints))
+print("Part 2: ", three_makes_2020(ints))
