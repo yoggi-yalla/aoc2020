@@ -18,5 +18,5 @@ for a, b, char, pw in passwords:
     if (pw[a-1] == char) ^ (pw[b-1] == char):
         sum2 += 1
 
-print("Part 1: " + str(sum1))
-print("Part 2: " + str(sum2))
+print("Part 1: ", sum1)
+print("Part 2: ", sum2)

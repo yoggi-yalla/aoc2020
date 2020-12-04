@@ -18,6 +18,6 @@ for dx, dy in strategies:
     product_sum *= sum_trees
     
     if (dx,dy) == (3,1):
-        print("Part 1: " + str(sum_trees))
+        print("Part 1: ", sum_trees)
 
-print('Part 2: ' + str(product_sum))
+print('Part 2: ', product_sum)
