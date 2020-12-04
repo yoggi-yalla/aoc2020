@@ -12,7 +12,7 @@ class Passport:
         self.cid = kwargs.get('cid','')
     
     def is_weakly_valid(self):
-        return (
+        return bool(
             self.byr and 
             self.iyr and 
             self.eyr and 
@@ -23,7 +23,7 @@ class Passport:
         )
             
     def is_strictly_valid(self):
-        return (
+        return bool(
             self.validate_byr() and
             self.validate_iyr() and
             self.validate_eyr() and
@@ -77,23 +77,19 @@ class Passport:
     def validate_cid(self):
         return True
 
-with open('input.txt','r') as f:
-    data = f.read()
-
-pp_strings = data.split("\n\n")
-
-passports = []
-for pp_string in pp_strings:
+def parse_pp_string(pp_string):
     pp_arr = pp_string.replace('\n', ' ').replace(':',' ').split(' ')
-    pp_data = {}
+    pp_obj = {}
     while pp_arr:
         k = pp_arr.pop(0)
         v = pp_arr.pop(0)
-        pp_data[k] = v
-    passports.append(Passport(**pp_data))
+        pp_obj[k] = v
+    return Passport(**pp_obj)
 
-weakly_valid_passports = [x for x in passports if x.is_weakly_valid()]
-strictly_valid_passports = [x for x in passports if x.is_strictly_valid()]
+with open('input.txt','r') as f:
+    pp_strings = f.read().split("\n\n")
 
-print("Part 1: " + str(len(weakly_valid_passports)))
-print("Part 2: " + str(len(strictly_valid_passports)))
+passports = [parse_pp_string(x) for x in pp_strings]
+
+print("Part 1: ", sum(x.is_weakly_valid() for x in passports))
+print("Part 2: ", sum(x.is_strictly_valid() for x in passports))
