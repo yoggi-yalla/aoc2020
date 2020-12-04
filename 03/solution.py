@@ -5,9 +5,16 @@ strategies = [(1,1),(3,1),(5,1),(7,1),(1,2)]
 
 width = len(m[0])
 product_sum = 1
+<<<<<<< HEAD
 for dx, dy in strategies:
     x = y = sum_trees = 0
 
+=======
+
+for dx, dy in strategies:
+    x = y = sum_trees = 0
+
+>>>>>>> 5a8ae86995037f2d2aaac62b30a5867aaf615d6c
     while y < len(m):
         row = m[y]
         if row[x] == '#':
