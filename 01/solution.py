@@ -15,3 +15,6 @@ def three_makes_2020(ints):
 
 print("Part 1: ", two_makes_2020(ints))
 print("Part 2: ", three_makes_2020(ints))
+
+#Part 1: 1005459
+#Part 2: 92643264

@@ -9,9 +9,7 @@ def parse_line(line):
 with open('input.txt', 'r') as f:
     passwords = [parse_line(x) for x in f.readlines()]
 
-sum1 = 0
-sum2 = 0
-
+sum1 = sum2 = 0
 for a, b, char, pw in passwords:
     if a <= pw.count(char) <= b:
         sum1 += 1
@@ -20,3 +18,6 @@ for a, b, char, pw in passwords:
 
 print("Part 1: ", sum1)
 print("Part 2: ", sum2)
+
+#Part 1: 666
+#Part 2: 670
