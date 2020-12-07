@@ -1,49 +1,40 @@
 import re
 
-def parse_line(l):
-    l = l.replace('.','').replace(',','').replace('bags','').replace('contain ','').replace('bag','')
-    colors = re.findall(r'([a-z]+ [a-z]+)',l)
-    numbers = re.findall(r'(\d+)',l) or [0]
-    key = colors.pop(0)
-    return key, colors, numbers
+def parse_line(line):
+    parent = re.search(r'^(\w+ \w+)', line).group()
+    children = re.findall(r'(\d+) (\w+ \w+)', line)
+    return parent, children
 
-def may_contain(x, y, rules):
-    if not y in rules:
-        return False
-    if x in rules[y]:
+def may_contain(color, parent, rules):
+    if color in rules[parent]:
         return True
     else:
-        for color in rules[y]:
-            if may_contain(x, color, rules):
+        for child in rules[parent]:
+            if may_contain(color, child, rules):
                 return True
     return False
 
-def nbr_of_bags_within(x, rules):
-    if 'no other' in rules[x]:
-        return 0
-    tally = 0
-    for sub,nbr in rules[x].items():
-        tally += int(nbr) * (1+nbr_of_bags_within(sub, rules))
-    return tally
-
+def nbr_of_bags_within(parent, rules):
+    nbr_of_bags = 0
+    for child, nbr in rules[parent].items():
+        nbr_of_bags += nbr * (1 + nbr_of_bags_within(child, rules))
+    return nbr_of_bags
 
 with open('input.txt', 'r') as f:
     data = f.read()
 
 rules = {}
-for l in data.split('\n'):
-    key, colors, numbers = parse_line(l)
-    rules[key] = {}
-    for color, nbr in zip(colors, numbers):
-        rules[key][color] = nbr
+for line in data.split('\n'):
+    parent, children = parse_line(line)
+    rules[parent] = {}
+    for nbr_of, child in children:
+        rules[parent][child] = int(nbr_of)
 
-
-sum1 = sum(may_contain('shiny gold',r,rules) for r in rules)
+sum1 = sum(may_contain('shiny gold', r, rules) for r in rules)
 sum2 = nbr_of_bags_within('shiny gold', rules)
 
 print("Part 1: ", sum1)
 print("Part 2: ", sum2)
-
 
 #Part 1: 238
 #Part 2: 82930
