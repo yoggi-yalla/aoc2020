@@ -14,13 +14,16 @@ def find_first_invalid(ints, cache_size):
 
 def find_encryption_weakness(ints, target):
     i, j = 0, 1
+    count = ints[0]
     while j < len(ints):
-        if sum(ints[i:j]) < target:
-            j += 1
-        elif sum(ints[i:j]) > target:
-            i += 1
-        else:
+        if count == target:
             return max(ints[i:j]) + min(ints[i:j])
+        elif count < target:
+            count += ints[j]
+            j += 1
+        elif count > target:
+            count -= ints[i]
+            i += 1
 
 with open('input.txt', 'r') as f:
     ints = [int(x) for x in f.read().split('\n')]
