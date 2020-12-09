@@ -8,7 +8,7 @@ def two_sums_to_k(k, cache):
 
 def find_first_invalid(ints, cache_size):
     for i in range(cache_size, len(ints)):
-        cache = ints[i - cache_size : i]
+        cache = ints[i-cache_size:i]
         if not two_sums_to_k(ints[i], cache):
             return ints[i]
 
@@ -16,14 +16,14 @@ def find_encryption_weakness(ints, target):
     i, j = 0, 1
     count = ints[0]
     while j < len(ints):
-        if count == target:
-            return max(ints[i:j]) + min(ints[i:j])
-        elif count < target:
+        if count < target:
             count += ints[j]
             j += 1
         elif count > target:
             count -= ints[i]
             i += 1
+        elif count == target:
+            return max(ints[i:j]) + min(ints[i:j])
 
 with open('input.txt', 'r') as f:
     ints = [int(x) for x in f.read().split('\n')]
