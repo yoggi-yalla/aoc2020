@@ -1,34 +1,33 @@
-from collections import defaultdict
-from functools import cache
+def multiply_diffs(full_path):
+    count = {1:0,2:0,3:0}
+    for i in range(len(full_path) - 1):
+        diff = full_path[i+1] - full_path[i]
+        count[diff] += 1
+    return count[1] * count[3]
 
-@cache
-def valid_ways(target, current, adapters):
-    if current not in adapters:
-        return 0
-    if current > target:
+def paths_to_target(current, target, full_path, memo={}):
+    if current in memo:
+        return memo[current]
+    if current not in full_path:
         return 0
     if current == target:
         return 1
-    return (
-        valid_ways(target, current + 1, adapters) + 
-        valid_ways(target, current + 2, adapters) + 
-        valid_ways(target, current + 3, adapters)
+    memo[current] = (
+        paths_to_target(current + 1, target, full_path, memo) + 
+        paths_to_target(current + 2, target, full_path, memo) + 
+        paths_to_target(current + 3, target, full_path, memo)
     )
-
-def multiply_diffs(adapters):
-    count = defaultdict(lambda: 0)
-    for i in range(len(adapters) - 1):
-        diff = adapters[i+1] - adapters[i]
-        count[diff] += 1
-    return count[1] * count[3]
+    return memo[current]
 
 with open('input.txt', 'r') as f:
     adapters = sorted([int(x) for x in f.read().split('\n')])
 
-adapters = [0] + adapters + [adapters[-1] + 3] # Adds outlet and device
+outlet = 0
+device = adapters[-1] + 3
+full_path = [outlet] + adapters + [device]
 
-part1 = multiply_diffs(adapters)
-part2 = valid_ways(adapters[-1], 0, frozenset(adapters))
+part1 = multiply_diffs(full_path)
+part2 = paths_to_target(outlet, device, full_path)
 
 print("Part 1: ", part1) # 2312
 print("Part 2: ", part2) # 12089663946752
