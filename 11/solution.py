@@ -39,7 +39,6 @@ def run(grid, tolerance, surroundings):
     return count_seated(grid)
     
 def main():
-    start = time.time()
     with open('input.txt', 'r') as f:
         data = f.read()
 
