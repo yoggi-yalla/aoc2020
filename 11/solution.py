@@ -39,6 +39,7 @@ def run(grid, tolerance, surroundings):
     return count_seated(grid)
     
 def main():
+    start = time.time()
     with open('input.txt', 'r') as f:
         data = f.read()
 
@@ -78,7 +79,7 @@ def main():
             while 1:
                 if not ((0 <= i_n < height) and (0 <= j_n < width)):
                     break
-                if grid[i_n][j_n] != ".":
+                if (i_n, j_n) in seats:
                     seat_to_visible[i,j].add((i_n,j_n))
                     break
                 i_n += d_i
