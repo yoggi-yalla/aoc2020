@@ -1,15 +1,15 @@
 import re
 
-def parse_rule(rule):
-    rules = {}
-    k,v = rule.split(':')
+def parse_rule(r):
+    rule = {}
+    k,v = r.split(':')
     v = v.replace('\"','')
     value = []
     alternatives = v.split('|')
     for alt in alternatives:
         value.append(tuple(alt.split()))
-    rules[k] = value
-    return rules
+    rule[k] = value
+    return rule
 
 def get_regex_for_rule(r, rules):
     if r not in rules:
