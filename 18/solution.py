@@ -14,7 +14,6 @@ with open('input.txt', 'r') as f:
     expressions = [parse_row(row) for row in rows]
 
 def evaluate_brackets(expr, base_evaluator):
-    bracket_start = 0
     i = 0
     while i < len(expr):
         if expr[i] == '(':
