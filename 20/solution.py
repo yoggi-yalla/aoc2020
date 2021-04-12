@@ -1,7 +1,9 @@
+from abc import ABC
 import math
 import textwrap
 
-class PixelObj:
+class PixelObj(ABC):
+    # Sub-classes should have a 'pixels' attribute (list of lists)
     identifier = None
     orientation = 0
 
@@ -17,17 +19,30 @@ class PixelObj:
         else:
             self.rotate_cw()
         self.orientation = (self.orientation + 1) % 8 
-
-    def transpose(self):
-        self.pixels = [[p for p in col] for col in zip(*self.pixels)]
         
     def flip_vertical(self):
         self.pixels = [row for row in reversed(self.pixels)]
 
     def rotate_cw(self):
-        self.flip_vertical()
-        self.transpose()
+        self.pixels = [[p for p in col[::-1]] for col in zip(*self.pixels)]
     
+    def top_edge(self):
+        return "".join(self.pixels[0])
+
+    def bottom_edge(self):
+        return "".join(self.pixels[-1])
+    
+    def left_edge(self):
+        return "".join(r[0] for r in self.pixels)
+    
+    def right_edge(self):
+        return "".join(r[-1] for r in self.pixels)
+
+    def all_edges(self):
+        normal_edges = [self.top_edge(),self.bottom_edge(),self.left_edge(),self.right_edge()]
+        reversed_edges = [e[::-1] for e in normal_edges]
+        return set(normal_edges + reversed_edges)
+
     def show(self):
         if self.identifier:
             print(f"\n{self.identifier}:")
@@ -57,11 +72,12 @@ class Image(PixelObj):
         
         # Place top row
         for j in range(1,dim):
+            edge_to_the_left = img.tiles[0][j-1].right_edge()
             for t in tiles:
                 if t in used_tiles:
                     continue
                 for t in t.orientations():
-                    if t.matching_left(img.tiles[0][j-1]):
+                    if t.left_edge() == edge_to_the_left:
                         img.tiles[0][j] = t
                         used_tiles.add(t)
                         break
@@ -71,11 +87,12 @@ class Image(PixelObj):
         # Place remaining rows
         for i in range(1,dim):
             for j in range(dim):
+                edge_above = img.tiles[i-1][j].bottom_edge()
                 for t in tiles:
                     if t in used_tiles:
                         continue
                     for t in t.orientations():
-                        if t.matching_top(img.tiles[i-1][j]):
+                        if t.top_edge() == edge_above:
                             img.tiles[i][j] = t
                             used_tiles.add(t)
                             break
@@ -87,7 +104,7 @@ class Image(PixelObj):
     @classmethod
     def get_corner_piece(cls, tiles):
         for t in tiles:
-            if sum(t.pairs_with(other) for other in tiles) == 2:
+            if sum(t.pairs_with(other) for other in tiles) == 3:
                 return t
         raise Exception("No corner piece found")
 
@@ -96,9 +113,9 @@ class Image(PixelObj):
         for i in range(self.dim):
             for j in range(self.dim):
                 if self.tiles[i][j]:
-                    for t_i in range(1,9):
-                        for t_j in range(1,9):
-                                self.pixels[t_i + i*8 - 1][t_j + j*8 - 1] = self.tiles[i][j].pixels[t_i][t_j]
+                    for t_i in range(8):
+                        for t_j in range(8):
+                            self.pixels[t_i + i*8][t_j + j*8] = self.tiles[i][j].pixels[t_i+1][t_j+1]
 
     def mark_image(self, fingerprint):
         size_i = max(fingerprint, key=lambda x: x[0])[0]
@@ -120,25 +137,6 @@ class Tile(PixelObj):
         self.identifier = int(tile[5:9])
         self.pixels = [[ch for ch in row] for row in rows]
 
-    def top_edge(self):
-        return "".join(self.pixels[0])
-
-    def bottom_edge(self):
-        return "".join(self.pixels[9])
-    
-    def left_edge(self):
-        return "".join(r[0] for r in self.pixels)
-    
-    def right_edge(self):
-        return "".join(r[9] for r in self.pixels)
-
-    def hashes(self):
-        hashes = []
-        for e in [self.top_edge(), self.bottom_edge(), self.left_edge(), self.right_edge()]:
-            rev = e[::-1]
-            hashes.append(e if e > rev else rev)
-        return hashes
-
     def align_top_left_orientation(self, others):
         for _ in self.orientations():
             if self.is_valid_top_left_corner(others):
@@ -146,34 +144,22 @@ class Tile(PixelObj):
         raise Exception("Could not align top left corner")
 
     def is_valid_top_left_corner(self, others):
-        top_hash = self.hashes()[0]
-        left_hash = self.hashes()[2]
-        for t in others:
-            if t == self:
+        for other in others:
+            if self == other:
                 continue
-            elif any(top_hash == h for h in t.hashes()):
+            elif self.top_edge() in other.all_edges():
                 return False
-            elif any(left_hash == h for h in t.hashes()):
+            elif self.left_edge() in other.all_edges():
                 return False
         return True
 
     def pairs_with(self, other):
-        if self == other:
-            return False
-        for h in self.hashes():
-            if any(h == h_ for h_ in other.hashes()):
-                return True
-        return False
-    
-    def matching_top(self, other):
-        return self.top_edge() == other.bottom_edge()
-    
-    def matching_left(self, other):
-        return self.left_edge() == other.right_edge()
+        return bool(set.intersection(self.all_edges(), other.all_edges()))
+
 
 class Dragon(PixelObj):
     def __init__(self, picture):
-        self.pixels = [[ch for ch in row] for row in picture.split('\n')[1:]]
+        self.pixels = [[ch for ch in row] for row in picture.split('\n')]
     
     def fingerprint(self):
         fingerprint = []
@@ -197,7 +183,7 @@ def main():
     c3 = img.tiles[-1][0].identifier
     c4 = img.tiles[-1][-1].identifier
 
-    dragon = Dragon(textwrap.dedent("""
+    dragon = Dragon(textwrap.dedent("""\
                                           # 
                         #    ##    ##    ###
                          #  #  #  #  #  #   """))
@@ -209,9 +195,9 @@ def main():
     print("Part 2:", img.count_roughness()) # 2065 
 
     # Finished image:
-    """
+    '''
     [img.next_orientation() for _ in range(4)]
     img.show()
-    """
+    '''
 
 main()
