@@ -22,7 +22,6 @@ def get_value(value, mask):
             out += value[-i]
         else:
             out += '0'
-    out += 'b0'
     return int(out[::-1], 2)
 
 def get_memory_addresses(mem, mask):
@@ -46,7 +45,6 @@ def get_memory_addresses(mem, mask):
                     new_mem += mem[-i]
                 else:
                     new_mem += '0'
-        new_mem += 'b0'
         out.append(int(new_mem[::-1], 2))
     return out
 
