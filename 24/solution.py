@@ -1,17 +1,16 @@
-with open('input.txt', 'r') as f:
-    data = f.read()
+from collections import defaultdict
 
 def parse_instruction(row):
-    instructions = []
+    instruction = []
     i = 0
     while i < len(row):
         if row[i] in ('s', 'n'):
-            instructions.append(row[i:i+2])
+            instruction.append(row[i:i+2])
             i += 2
         else:
-            instructions.append(row[i])
+            instruction.append(row[i])
             i += 1
-    return instructions
+    return instruction
 
 direction_to_offset = {
     "e":  ( 0, 2),
@@ -22,68 +21,44 @@ direction_to_offset = {
     "ne": (-1, 1)
 }
 
-def instruction_to_offset(instruction):
-    dy, dx = 0, 0
+def instruction_to_coords(instruction):
+    y, x = 0, 0
     for direction in instruction:
         offset = direction_to_offset[direction]
-        dy += offset[0]
-        dx += offset[1]
-    return (dy,dx)
-
-def count_black_neighbors(y,x,grid):
-    count = 0
-    for dy,dx in direction_to_offset.values():
-        if grid[y+dy][x+dx] == 'B':
-            count += 1
-    return count
-
-def compute_buffer(grid):
-    buffer = {}
-    for x in range(2,len(grid)-2):
-        for y in range(2+x%2,len(grid)-2,2):
-            color = grid[y][x]
-            count = count_black_neighbors(y,x,grid)
-            if color == 'B':
-                if count == 0 or count > 2:
-                    buffer[(y,x)] = 'W'
-            else:
-                if count == 2:
-                    buffer[(y,x)] = 'B'
-    return buffer
-
-def update_grid(grid, buffer):
-    for (y,x), v in buffer.items():
-        grid[y][x] = v
-    return grid
+        y += offset[0]
+        x += offset[1]
+    return (y, x)
 
 def main():
-    instructions = [parse_instruction(row) for row in data.splitlines()]
+    with open('input.txt', 'r') as f:
+        data = f.read()
+        instructions = [parse_instruction(row) for row in data.splitlines()]
 
-    dim = 250
-    grid = [['.' for _ in range(dim)] for _ in range(dim)]
+    black_tiles = set()
+    for i in instructions:
+        coords = instruction_to_coords(i)
+        black_tiles.symmetric_difference_update([coords])
+    print("Part 1:", len(black_tiles))
 
-    for x in range(dim):
-        for y in range(x%2, dim, 2):
-            grid[y][x] = 'W'
+    for _ in range(100):
+        nbr_black_neighbors = defaultdict(int)
+        for y,x in black_tiles:
+            for dy,dx in direction_to_offset.values():
+                nbr_black_neighbors[(y+dy, x+dx)] += 1
 
-    y_0 = int(dim/2)
-    x_0 = int(dim/2)
+        additions = set()
+        for coords,v in nbr_black_neighbors.items():
+            if coords not in black_tiles and v == 2:
+                additions.add(coords)
 
-    for instruction in instructions:
-        dy,dx = instruction_to_offset(instruction)
-        y = y_0 + dy
-        x = x_0 + dx
-        if grid[y][x] == 'W':
-            grid[y][x] = 'B'
-        else:
-            grid[y][x] = 'W'
+        removals = set()
+        for coords in black_tiles:
+            n = nbr_black_neighbors[coords]
+            if n == 0 or n > 2:
+                removals.add(coords)
 
-    print("Part 1:", sum(row.count('B') for row in grid)) # 275
-
-    for _ in range(100): # takes ~2s
-        buffer = compute_buffer(grid)
-        grid = update_grid(grid, buffer)
-
-    print("Part 2:", sum(row.count('B') for row in grid)) # 3537
+        black_tiles.update(additions)
+        black_tiles.difference_update(removals)
+    print("Part 2:", len(black_tiles))
 
 main()

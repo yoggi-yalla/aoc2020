@@ -3,72 +3,53 @@ from itertools import product
 
 MEM_PATTERN = re.compile(r'mem\[(\d+)\] = (\d+)')
 
-def parse_line(line):
-    if line.startswith('mem'):
-        address, value = re.match(MEM_PATTERN, line).groups()
-        return int(address), int(value)
-    else:
-        return line.split(' = ')[1]
+def padded_bin(i):
+    bin_string = bin(i)[2:]
+    padding = 36-len(bin_string)
+    return '0'*padding + bin_string
 
-def get_value(value, mask):
-    value = bin(value)
-    out = ''
-    for i in range(1, len(mask)+1):
-        if mask[-i] == '0':
-            out += '0'
-        elif mask[-i] == '1':
-            out += '1'
-        elif i < len(value) - 1:
-            out += value[-i]
+with open('input.txt', 'r') as f:
+    data = f.read()
+
+    mem_1 = {}
+    mem_2 = {}    
+    for line in data.splitlines():
+        if line.startswith('mask'):
+            mask = line.split(' = ')[1]
         else:
-            out += '0'
-    return int(out[::-1], 2)
+            address, value = re.match(MEM_PATTERN, line).groups()
+            p_address = padded_bin(int(address))
+            p_value = padded_bin(int(value))
 
-def get_memory_addresses(mem, mask):
-    mem = bin(mem)
-
-    floating_bits = mask.count('X')
-    configurations = product(('0','1'), repeat=floating_bits)
-
-    out = []
-    for bits in configurations:
-        bit_counter = 0
-        new_mem = ''
-        for i in range(1, len(mask)+1):
-            if mask[-i] == 'X':
-                new_mem += bits[bit_counter]
-                bit_counter += 1
-            elif mask[-i] == '1':
-                new_mem += '1'
-            else:
-                if i < len(mem) - 1:
-                    new_mem += mem[-i]
+            # Part 1
+            masked_value = ''
+            for i in range(36):
+                if mask[i] == 'X':
+                    masked_value += p_value[i]
                 else:
-                    new_mem += '0'
-        out.append(int(new_mem[::-1], 2))
-    return out
+                    masked_value += mask[i]
+            mem_1[int(p_address, 2)] = int(masked_value, 2)
 
-def main():
-    with open('input.txt', 'r') as f:
-        data = f.read()
-        instructions = [parse_line(line) for line in data.splitlines()]
-    
-    mem = {}
-    for i in instructions:
-        if type(i) == str:
-            mask = i
-        else:
-            mem[i[0]] = get_value(i[1], mask)
-    print("Part 1:", sum(mem.values())) # 13865835758282
+            # Part 2
+            floating_bits = mask.count('X')
+            configurations = product(('1','0'), repeat=floating_bits)
+            
+            mems = []
+            for bits in configurations:
+                new_mem = ''
+                bits_counter = 0
+                for i in range(36):
+                    if mask[i] == 'X':
+                        new_mem += bits[bits_counter]
+                        bits_counter += 1
+                    elif mask[i] == '1':
+                        new_mem += '1'
+                    else:
+                        new_mem += p_address[i]
+                mems.append(new_mem)
 
-    mem = {}
-    for i in instructions:
-        if type(i) == str:
-            mask = i
-        else:
-            addresses = get_memory_addresses(i[0], mask)
-            for a in addresses:
-                mem[a] = i[1]
-    print("Part 2:", sum(mem.values())) # 4195339838136
+            for m in mems:
+                mem_2[int(m,2)] = int(p_value,2)
 
-main()
+print("Part 1:", sum(mem_1.values())) # 13865835758282
+print("Part 2:", sum(mem_2.values())) # 4195339838136
