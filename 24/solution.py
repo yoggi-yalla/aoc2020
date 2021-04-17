@@ -1,14 +1,14 @@
 from collections import defaultdict
 
-def parse_instruction(row):
+def parse_instruction(line):
     instruction = []
     i = 0
-    while i < len(row):
-        if row[i] in ('s', 'n'):
-            instruction.append(row[i:i+2])
+    while i < len(line):
+        if line[i] in ('s', 'n'):
+            instruction.append(line[i:i+2])
             i += 2
         else:
-            instruction.append(row[i])
+            instruction.append(line[i])
             i += 1
     return instruction
 
@@ -32,13 +32,13 @@ def instruction_to_coords(instruction):
 def main():
     with open('input.txt', 'r') as f:
         data = f.read()
-        instructions = [parse_instruction(row) for row in data.splitlines()]
+        instructions = [parse_instruction(line) for line in data.splitlines()]
 
     black_tiles = set()
     for i in instructions:
         coords = instruction_to_coords(i)
-        black_tiles.symmetric_difference_update([coords])
-    print("Part 1:", len(black_tiles))
+        black_tiles = black_tiles ^ set([coords])
+    print("Part 1:", len(black_tiles)) # 275
 
     for _ in range(100):
         nbr_black_neighbors = defaultdict(int)
@@ -57,8 +57,8 @@ def main():
             if n == 0 or n > 2:
                 removals.add(coords)
 
-        black_tiles.update(additions)
-        black_tiles.difference_update(removals)
-    print("Part 2:", len(black_tiles))
+        black_tiles = (black_tiles | additions) - removals
+
+    print("Part 2:", len(black_tiles)) # 3537
 
 main()
